@@ -1,41 +1,118 @@
-# Nusantara Wildfire Early Warning
+<div align="center">
+
+# 🌲 Nusantara Wildfire Early Warning
+### Predictive Early Warning & Susceptibility Mapping for Tropical Peatland Wildfires (*Karhutla*) in Indonesia
+**Remote Sensing & Machine Learning · Environmental Data Science · Master's Thesis Track**
 
 [![Python CI](https://github.com/KevinNaserwan/nusantara-wildfire-earlywarning/actions/workflows/ci.yml/badge.svg)](https://github.com/KevinNaserwan/nusantara-wildfire-earlywarning/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![LightGBM](https://img.shields.io/badge/Model-LightGBM%20%2F%20XGBoost-blue.svg)](https://lightgbm.readthedocs.io/)
+[![GeoPandas](https://img.shields.io/badge/GIS-GeoPandas-green.svg)](https://geopandas.org/)
 
-Predictive early warning system and susceptibility mapping for **tropical peatland wildfires (*Kebakaran Hutan dan Lahan / Karhutla*) in Indonesia** using multi-sensor satellite remote sensing (Sentinel-1/2, MODIS/VIIRS) and machine learning.
+</div>
 
-## National Urgency & Research Background
-Indonesia houses over 13 million hectares of tropical peatlands (notably in Riau, South Sumatra, West and Central Kalimantan). During dry seasons, drained and degraded peat layers become fuel for smoldering, subterranean fires that produce toxic transboundary haze and massive CO2 emissions.
+---
 
-Traditional monitoring is reactive (detecting active hotspots after ignition). This project provides a **proactive 3-to-7 day pre-ignition risk forecast** by fusing:
-- **Peat Moisture Proxies**: NDMI & Sentinel-1 SAR moisture variation.
-- **Canal Drainage Drainage Network**: Proximity to artificial canals lowering the groundwater table (*Tinggi Muka Air Tanah - TMAT*).
-- **Meteorological Drivers**: Consecutive dry days (CDD) and surface temperature anomalies.
+## 📌 Problem Statement & Environmental Urgency
 
-## Project Structure
+Indonesia contains over **13.4 million hectares of tropical peatland ecosystems**, primarily across Sumatra (Riau, South Sumatra) and Kalimantan. Drained and degraded peat layers are highly susceptible to subterranean smoldering combustion during dry seasons (aggravated by positive IOD and El Niño anomalies), generating severe transboundary toxic haze and monumental greenhouse gas emissions.
+
+### Paradigm Shift: Reactive $\longrightarrow$ Proactive
+- **Traditional Approach (Reactive)**: Relies on thermal anomalies (MODIS/VIIRS thermal hotspots) detected *after* ignition has already occurred and underground fires have spread.
+- **This Framework (Proactive)**: Delivers a **3-to-7 day pre-ignition susceptibility forecast** by correlating satellite canopy moisture indices, meteorological drought persistence, and proximity to artificial drainage canal networks.
+
+---
+
+## 🏛️ Pipeline Architecture
+
+```mermaid
+flowchart TD
+    A[Satellite & Weather Streams] --> B[Data Ingestion Engine]
+    
+    B -->|Sentinel-2 Optical| C[Spectral Moisture: NDMI & NBR]
+    B -->|ERA5 / BMKG| D[Meteorology: Consecutive Dry Days CDD & Temp]
+    B -->|Spatial GeoJSON| E[BRGM Peat Hydrological Units KHG]
+    B -->|Hydro-infrastructure| F[Canal Drainage Network Proximity]
+    
+    C --> G[Spatial Feature Aggregator]
+    D --> G
+    E --> G
+    F --> G
+    
+    G --> H[Spatial Cross-Validation LightGBM Classifier]
+    H --> I[Multi-Criteria Early Warning Engine]
+    
+    I --> J[Alert Level: LOW, MODERATE, HIGH, EXTREME]
+    I --> K[Spatial Risk GeoTIFF & Interactive Web Map]
 ```
+
+---
+
+## 📐 Mathematical Formulations
+
+### 1. Fuel Moisture & Peatland Spectral Indices
+$$\text{NDMI} = \frac{\text{NIR} - \text{SWIR1}}{\text{NIR} + \text{SWIR1}} = \frac{B8 - B11}{B8 + B11} \quad \text{(Direct proxy for canopy and peat surface moisture)}$$
+
+$$\text{NBR} = \frac{\text{NIR} - \text{SWIR2}}{\text{NIR} + \text{SWIR2}} = \frac{B8 - B12}{B8 + B12} \quad \text{(Normalized Burn Ratio)}$$
+
+$$\Delta\text{NBR} = \text{NBR}_{\text{pre-fire}} - \text{NBR}_{\text{post-fire}} \quad \text{(Post-fire burn severity)}$$
+
+### 2. Peat Drainage Canal Vulnerability Decay
+Artificial drainage canals artificially drop the groundwater table (*Tinggi Muka Air Tanah - TMAT*). Vulnerability weight $w_{\text{canal}}$ decays exponentially with Euclidean distance $d$ (meters) to the nearest canal:
+
+$$w_{\text{canal}}(d) = \exp\left(-\frac{d}{\sigma_{\text{canal}}}\right), \quad \sigma_{\text{canal}} \approx 250\text{ m}$$
+
+---
+
+## 📂 Project Structure
+
+```
+nusantara-wildfire-earlywarning/
 ├── data/
-│   ├── raw/             # Historical MODIS/VIIRS hotspots & KHG polygon boundaries
-│   └── processed/       # Spatially-joined environmental susceptibility features
+│   ├── raw/                 # MODIS/VIIRS hotspot catalogs & KHG boundary polygons
+│   └── processed/           # Feature matrices with spatial environmental joins
+├── docs/                    # KHG classification documentation & thesis drafts
+├── notebooks/               # Case studies on Riau & Pulang Pisau (Central Kalimantan)
+│   └── 01_hotspot_spatial_analysis.ipynb
 ├── src/
-│   ├── fire_indices.py  # NBR, NDMI, dNBR burn severity calculations
-│   └── early_warning.py # Multi-factor risk rating & alert classifier
-├── notebooks/           # Case studies on Riau & Pulang Pisau (Central Kalimantan)
-└── requirements.txt
+│   ├── fire_indices.py      # NBR, NDMI, dNBR spectral calculation routines
+│   ├── early_warning.py     # Multi-criteria susceptibility scoring & alert engine
+│   ├── canal_risk.py        # Drainage canal proximity spatial decay model
+│   └── spatial_matcher.py   # Ray-casting point-in-polygon spatial matcher
+├── tests/                   # Automated pytest suites
+└── requirements.txt         # Dependencies
 ```
 
-## Quick Start
+---
+
+## 🚀 Quick Start
+
+### Installation
 ```bash
+# Clone the repository
+git clone git@github.com:KevinNaserwan/nusantara-wildfire-earlywarning.git
+cd nusantara-wildfire-earlywarning
+
+# Install dependencies
 pip install -r requirements.txt
-python -c "from src.early_warning import PeatlandFireRiskClassifier; print(PeatlandFireRiskClassifier.classify_risk(0.08, 15, 150, 36.0))"
 ```
 
-## Research Roadmap
-- [x] Specialized peatland spectral indices (NDMI, NBR, dNBR)
-- [x] Multi-criteria early warning risk grading engine
-- [ ] Integration with BRGM (Badan Restorasi Gambut dan Mangrove) sensor network telemetry
-- [ ] Spatial cross-validation with LightGBM/XGBoost on 2019-2023 historical fire seasons
-- [ ] Publication manuscript target: Environmental Data Science / IEEE JSTARS
+### Run Risk Classification Demo
+```bash
+python -c "from src.early_warning import PeatlandFireRiskClassifier; res = PeatlandFireRiskClassifier.classify_risk(ndmi=0.07, consecutive_dry_days=14, distance_to_canal_meters=120.0, temperature_celsius=36.5); print('Risk Result:', res)"
+```
 
-## License
-MIT
+---
+
+## 🔬 Scientific Roadmap & Publication Targets
+- [x] Peatland-specific spectral indices (NDMI, NBR, dNBR)
+- [x] Multi-criteria early warning risk grading engine
+- [ ] Integration with ground-truth BRGM PRIMS telemetry (TMAT sensor logs)
+- [ ] Spatial Cross-Validation training on 2019-2023 historical wildfire occurrences
+- [ ] Target Publication: *Environmental Data Science (Cambridge)* or *International Journal of Wildland Fire*.
+
+---
+
+## 👤 Author & Research Citation
+- **Principal Investigator**: Kevin Putrayudha Naserwan ([@KevinNaserwan](https://github.com/KevinNaserwan))
+- **Affiliation**: Universitas Sriwijaya (Alumnus) · Master's Thesis Research Track
