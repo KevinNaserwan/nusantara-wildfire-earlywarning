@@ -25,25 +25,47 @@ Indonesia contains over **13.4 million hectares of tropical peatland ecosystems*
 
 ## 🏛️ Pipeline Architecture
 
-```mermaid
-flowchart TD
-    A[Satellite & Weather Streams] --> B[Data Ingestion Engine]
-    
-    B -->|Sentinel-2 Optical| C[Spectral Moisture: NDMI & NBR]
-    B -->|ERA5 / BMKG| D[Meteorology: Consecutive Dry Days CDD & Temp]
-    B -->|Spatial GeoJSON| E[BRGM Peat Hydrological Units KHG]
-    B -->|Hydro-infrastructure| F[Canal Drainage Network Proximity]
-    
-    C --> G[Spatial Feature Aggregator]
-    D --> G
-    E --> G
-    F --> G
-    
-    G --> H[Spatial Cross-Validation LightGBM Classifier]
-    H --> I[Multi-Criteria Early Warning Engine]
-    
-    I --> J[Alert Level: LOW, MODERATE, HIGH, EXTREME]
-    I --> K[Spatial Risk GeoTIFF & Interactive Web Map]
+```
++-------------------------------------------------------------------------+
+|                PEATLAND WILDFIRE EARLY WARNING PIPELINE                 |
++-------------------------------------------------------------------------+
+
+ [ Multi-Source Satellite & Telemetry Streams (NASA FIRMS / Sentinel / ERA5) ]
+                                    |
+                                    v
+ +---------------------------------------------------------------------+
+ |                     DATA INGESTION & PROCESSING                     |
+ +----------------------------------+----------------------------------+
+                                    |
+      +--------------------+--------+--------+--------------------+
+      |                    |                 |                    |
+      v (Sentinel-2)       v (ERA5 / BMKG)   v (Spatial BRGM)     v (Hydrology)
+ +-----------------+ +-----------------+ +-----------------+ +-----------------+
+ | Moisture & Fuel | | Meteorology:    | | Peat Hydro Unit | | Canal Proximity |
+ | NDMI, NBR, SWIR | | CDD, Temp, Wind | | KHG Typology    | | Drainage Index  |
+ +--------+--------+ +--------+--------+ +--------+--------+ +--------+--------+
+          |                   |                   |                   |
+          +-------------------+---------+---------+-------------------+
+                                        |
+                                        v
+ +---------------------------------------------------------------------+
+ |                  SPATIAL FEATURE AGGREGATOR ENGINE                  |
+ +--------------------------------------+------------------------------+
+                                        |
+                                        v
+ +---------------------------------------------------------------------+
+ |         Spatial Cross-Validation LightGBM Risk Classifier           |
+ +--------------------------------------+------------------------------+
+                                        |
+                                        v
+ +---------------------------------------------------------------------+
+ |                 MULTI-CRITERIA EARLY WARNING ENGINE                 |
+ +--------------------------------------+------------------------------+
+                                        |
+                     +------------------+------------------+
+                     |                                     |
+                     v                                     v
+ [ Alert Levels: LOW / MODERATE / HIGH / EXTREME ]   [ Risk GeoTIFF & Map ]
 ```
 
 ---
